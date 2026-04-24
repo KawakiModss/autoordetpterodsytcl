@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto Order Pterodactyl - Hiroko</title>
+  <style>
+    :root {
+      --bg-1: #081120;
+      --bg-2: #121a35;
+      --card: rgba(255,255,255,0.12);
+      --card-strong: rgba(255,255,255,0.18);
+      --stroke: rgba(255,255,255,0.18);
+      --text: #f4f7ff;
+      --muted: #bfd0ff;
+      --accent: #8ab4ff;
+      --accent-2: #ff9fd8;
+      --accent-3: #c9b1ff;
+      --success: #89f7b2;
+      --shadow: 0 15px 40px rgba(0,0,0,0.35);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 20%, rgba(255,159,216,.18), transparent 18%),
+        radial-gradient(circle at 80% 15%, rgba(138,180,255,.18), transparent 20%),
+        radial-gradient(circle at 50% 80%, rgba(201,177,255,.18), transparent 20%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .stars, .stars::before, .stars::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.9), transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.7), transparent),
+        radial-gradient(1.5px 1.5px at 90px 40px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1.5px 1.5px at 130px 80px, rgba(255,255,255,0.65), transparent),
+        radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.8), transparent);
+      background-size: 180px 120px;
+      opacity: .28;
+      animation: twinkle 8s linear infinite;
+    }
+
+    .stars::before { transform: scale(1.2); opacity: .2; animation-duration: 12s; }
+    .stars::after { transform: scale(1.5); opacity: .12; animation-duration: 16s; }
+  
+  /* efek fade in buat konten utama */
+  .main-content-hidden {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+  }
+  
+  .main-content-visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+    @keyframes twinkle {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(8px); }
+      100% { transform: translateY(0px); }
+    }
+
+    .anime-silhouette {
+      position: fixed;
+      right: -40px;
+      bottom: 0;
+      width: min(44vw, 420px);
+      height: auto;
+      opacity: 0.16;
+      filter: drop-shadow(0 0 30px rgba(255,159,216,.25));
+      pointer-events: none;
+    }
+
+    .wrap {
+      width: min(1160px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 26px 0 42px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 22px;
+    }
+
+    .glass {
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-main::before {
+      content: "";
+      position: absolute;
+      inset: auto -70px -70px auto;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(255,159,216,.45), transparent 65%);
+      border-radius: 50%;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.18);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      line-height: 1.05;
+      letter-spacing: -.02em;
+    }
+
+    .accent {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+      margin-top: 14px;
+      max-width: 720px;
+    }
+
+    .hero-side {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: center;
+    }
+
+    .mini-card {
+      padding: 16px 18px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+    }
+
+    .mini-card strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .mini-card span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 22px;
+    }
+
+    .plans, .order-box, .guide {
+      padding: 22px;
+    }
+
+    .section-title {
+      font-size: 21px;
+      margin: 0 0 6px;
+    }
+
+    .section-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .plan {
+      position: relative;
+      padding: 18px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.07));
+      border: 1px solid rgba(255,255,255,.15);
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .plan:hover,
+    .plan.active {
+      transform: translateY(-3px);
+      border-color: rgba(138,180,255,.55);
+      background: linear-gradient(180deg, rgba(138,180,255,.18), rgba(255,255,255,.09));
+    }
+
+    .plan .tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.11);
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .plan h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .plan p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 64px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(137,247,178,.12);
+      color: var(--success);
+      font-size: 12px;
+      margin-top: 12px;
+      border: 1px solid rgba(137,247,178,.25);
+    }
+
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 8px;
+      color: #eef2ff;
+    }
+
+    .field { margin-bottom: 14px; }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      outline: none;
+      font-size: 14px;
+    }
+
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,.42); }
+
+    textarea {
+      min-height: 95px;
+      resize: vertical;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    button, .link-btn {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      text-decoration: none;
+      padding: 14px 16px;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 14px;
+      text-align: center;
+      transition: transform .18s ease, opacity .18s ease;
+    }
+
+    button:hover, .link-btn:hover { transform: translateY(-2px); }
+
+    .primary {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #081120;
+    }
+
+    .secondary {
+      background: rgba(255,255,255,.10);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.14);
+    }
+
+    .summary {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .guide ol {
+      margin: 12px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .code {
+      display: block;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.1);
+      color: #fff;
+      overflow-wrap: anywhere;
+      font-family: monospace;
+      font-size: 12px;
+    }
+
+    .footer {
+      text-align: center;
+      color: rgba(255,255,255,.58);
+      font-size: 12px;
+      margin-top: 22px;
+      padding-bottom: 10px;
+    }
+
+    @media (max-width: 980px) {
+      .hero, .content {
+        grid-template-columns: 1fr;
+      }
+      .plan-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .anime-silhouette { width: min(58vw, 360px); opacity: .12; }
+    }
+
+    @media (max-width: 640px) {
+      .wrap { width: min(100% - 18px, 1000px); }
+      .hero-main, .hero-side, .plans, .order-box, .guide { padding: 18px; }
+      .plan-grid { grid-template-columns: 1fr; }
+      .btn-row { grid-template-columns: 1fr; }
+      h1 { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+</div>
+  <div class="stars"></div>
+
+  <svg class="anime-silhouette" viewBox="0 0 400 620" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="g1" x1="0" x2="1">
+        <stop offset="0" stop-color="#8ab4ff"/>
+        <stop offset="1" stop-color="#ff9fd8"/>
+      </linearGradient>
+    </defs>
+    <path fill="url(#g1)" d="M276 50c-39-30-96-35-142 0-54 42-53 122-18 172-14 30-23 66-23 108 0 52 14 96 34 131 10 18 17 34 18 50 3 46-23 49-15 71 10 27 52 29 94 31 73 4 141-6 132-48-5-25-36-31-45-60-5-17-1-44 11-77 19-49 31-96 28-155-2-52-21-93-49-123 15-35 19-74 8-100-6-15-19-24-33-30zm-124 194c-10 0-19-9-19-20s9-20 19-20 19 9 19 20-8 20-19 20zm96 0c-11 0-19-9-19-20s8-20 19-20c10 0 19 9 19 20s-9 20-19 20zm-47 53c27 0 42 17 43 32 1 5-4 8-9 7-22-7-46-8-68 0-5 2-10-2-9-7 2-15 17-32 43-32z"/>
+  </svg>
+
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-main glass">
+        <div class="badge">✨ Anime Style • Auto Order Pterodactyl</div>
+        <h1>Panel <span class="accent">Pterodactyl</span><br>by ᴋᴡᴀɪ ꜱᴛᴏʀᴇ ---⁹⁹友</h1>
+        <p class="sub">
+          website tempatnya semua tools & produk digital premium buat lu yang suka eksplorasi tanpa batas tahun 2026!
+          Di sini kita fokus jualin barang-barang yang tested 100% work, update terus tiap minggu, dan langsung bisa dipake. Gak ada tipu-tipu, 
+          semua real & langsung kirim setelah pembayaran. <b>Silahkan Untuk di cek</b> dan <b>kami tidak hanya menjual Panel doang untuk melihat listnya silahkan scroll ke bawah </b>.
+        </p>
+      </div>
+
+      <div class="hero-side glass">
+        <div class="mini-card">
+          <strong>Simple Setting</strong>
+          <span>Nomor WA, nama toko, channel WA, catatan order, dan daftar paket bisa diubah langsung di script.</span>
+        </div>
+        <div class="mini-card">
+          <strong>Auto Redirect</strong>
+          <span>Pesanan akan otomatis membuat pesan ke WhatsApp sesuai paket RAM yang dipilih pengguna.</span>
+        </div>
+        <div class="mini-card">
+          <strong>Responsive</strong>
+          <span>Tampilan tetap rapi di HP maupun desktop, cocok untuk dipasang di hosting biasa atau panel.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="content">
+      <div class="glass plans">
+        <h2 class="section-title">Pilih Paket RAM</h2>
+        <div class="section-sub">Klik salah satu paket. Nanti detail paket otomatis masuk ke form order di sebelah kanan.</div>
+        <div class="plan-grid" id="planGrid"></div>
+      </div>
+
+      <div class="right-col">
+        <div class="glass order-box">
+          <h2 class="section-title">Form Order</h2>
+          <div class="section-sub">Isi data berikut lalu tekan tombol order WhatsApp.</div>
+
+          <div class="field">
+            <label>Nama</label>
+            <input type="text" id="nama" placeholder="Masukkan nama pembeli" />
+          </div>
+
+          <div class="field">
+            <label>Nomor WhatsApp</label>
+            <input type="text" id="nomor" placeholder="08xxxxxxxxxx" />
+          </div>
+
+          <div class="field">
+            <label>Paket Dipilih</label>
+            <input type="text" id="paketTerpilih" placeholder="Belum memilih paket" readonly />
+          </div>
+
+          <div class="field">
+            <label>Username Panel</label>
+            <input type="text" id="username" placeholder="Contoh: userkamu" />
+          </div>
+
+          <div class="field">
+            <label>Catatan Tambahan</label>
+            <textarea id="catatan" placeholder="Contoh: kirim cepat ya kak"></textarea>
+          </div>
+
+          <div class="btn-row">
+            <button class="primary" onclick="orderSekarang()">Order via WhatsApp</button>
+            <a class="link-btn secondary" id="channelBtn" href="#" target="_blank" rel="noopener noreferrer">Lihat Channel WA</a>
+          </div>
+
+          <div class="summary" id="orderSummary">
+            Belum ada paket dipilih. Silakan pilih paket RAM terlebih dahulu.
+          </div>
+        </div>
+
+        <div class="glass guide">
+          <h2 class="section-title">Di ᴋᴡᴀɪ ꜱᴛᴏʀᴇ ---⁹⁹友 Jual Apa Aja Sih ?</h2>
+          <div class="section-sub">Semua produk dijamin work & ready stock 
+          Update otomatis tiap ada patch baru Pembayaran via semua metode
+          (transfer, e-wallet, crypto,dana,dan qris) <b>CONFIG </b> Semua produk 
+          dijamin work & ready stock After sales support 24/7 ᴋᴡᴀɪ ꜱᴛᴏʀᴇ ---⁹⁹友 — 
+          Kalau bukan di sini, berarti lu ketinggalan zaman.</div>
+          <ol>
+            <li>Prompt Jailbreak AI Terbaru
+             Jailbreak ChatGPT, Grok, Claude, Gemini, Perplexity, dll
+             Bikin AI nurut perintah apapun (NSFW, hacking, dll)
+             Update tiap minggu biar selalu bypass filter terbaru.</li>
+            <li>APK Bug & Game Mod
+            Unlimited money, diamond, gold, coin
+            Aimbot, wallhack, speedhack, teleport, auto win
+            Anti-ban + bypass anti-cheat (Free Fire, MLBB, PUBG, CODM, Roblox, dll)
+            <b> Support semua versi game terbaru</b>.</li>
+            <li>APK RAT (Remote Access Trojan) Full Feature
+            Kontrol HP target dari jauh <b> (camera, mic, file, SMS, call, lokasi)
+            Keylogger, screen record, auto record panggilan
+            Stealth mode (gak keliatan di HP korban) <b>
+            Cocok buat monitoring / testing. </b></li>
+            <li>Hosting Panel 
+            <b> Panel admin buat botnet dan run SC atau mau buat server Minecraft 
+            Server stabil, anti-down, harga murah. <b></li>
+            <li>Bug APK Premium & Injector
+            Script inject custom
+            Bypass semua jenis proteksi
+            Support <b> Game Guardian, Lucky Patcher, dll</b>.</li>
+            <li>Tools Tambahan
+            Auto Like / Mass DM / Follower Bot
+            Account Recovery (IG, FB, TikTok, dll)
+            Phishing Kit siap pakai
+            Mass Message & Spam Tools
+            Dan masih banyak lagi (tanya aja langsung ke owner) <b>plans</b>.</li>
+          <ol>
+          <h2 class="section-title">Mau yang mana bro? Langsung chat owner aja, stock terbatas tiap drop!</h2>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">Dibuat oleh KawakiTamvan auto order Pterodactyl • Anime Theme and Panel</div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      storeName: "ᴋᴡᴀɪ ꜱᴛᴏʀᴇ ---⁹⁹友",
+      whatsappNumber: "628811409209", // GANTI KE NOMOR WA KAMU
+      channelLink: "https://whatsapp.com/channel/0029VbCsOJEAojZ02gbLS101", // GANTI KE LINK CHANNEL WA KAMU
+      messageHeader: "Halo kak, saya mau order panel Pterodactyl.",
+      plans: [
+        { name: "1GB", price: "Rp1.000", desc: "Cocok untuk bot ringan / testing" },
+        { name: "2GB", price: "Rp2.000", desc: "Lebih lega untuk kebutuhan standar" },
+        { name: "3GB", price: "Rp3.000", desc: "Stabil untuk bot dan utilitas umum" },
+        { name: "4GB", price: "Rp4.000", desc: "Pas untuk pemakaian harian" },
+        { name: "5GB", price: "Rp5.000", desc: "Ruang ekstra untuk performa lebih baik" },
+        { name: "6GB", price: "Rp6.000", desc: "Cocok untuk workload menengah" },
+        { name: "7GB", price: "Rp7.000", desc: "Lebih luas untuk kebutuhan khusus" },
+        { name: "8GB", price: "Rp8.000", desc: "Siap untuk bot yang lebih aktif" },
+        { name: "9GB", price: "Rp9.000", desc: "Performa lebih longgar" },
+        { name: "10GB", price: "Rp10.000", desc: "Nyaman untuk penggunaan tinggi" },
+        { name: "Unlimited", price: "Rp11.000", desc: "Tanpa batas RAM sesuai ketentuan seller" }
+      ]
+    };
+
+    const planGrid = document.getElementById('planGrid');
+    const paketTerpilih = document.getElementById('paketTerpilih');
+    const orderSummary = document.getElementById('orderSummary');
+    const channelBtn = document.getElementById('channelBtn');
+
+    let selectedPlan = null;
+
+    channelBtn.href = CONFIG.channelLink;
+
+    function renderPlans() {
+      planGrid.innerHTML = '';
+      CONFIG.plans.forEach((plan, index) => {
+        const item = document.createElement('div');
+        item.className = 'plan';
+        item.innerHTML = `
+          <div class="tag">Paket ${plan.name}</div>
+          <h3>${plan.name}</h3>
+          <p>${plan.desc}</p>
+          <div class="pill">${plan.price}</div>
+        `;
+        item.addEventListener('click', () => selectPlan(plan, item));
+        if (index === 0) selectPlan(plan, item, false);
+        planGrid.appendChild(item);
+      });
+    }
+
+    function selectPlan(plan, element, animate = true) {
+      selectedPlan = plan;
+      document.querySelectorAll('.plan').forEach(el => el.classList.remove('active'));
+      if (element) element.classList.add('active');
+      paketTerpilih.value = `${plan.name} • ${plan.price}`;
+      orderSummary.innerHTML = `
+        Paket dipilih: <b>${plan.name}</b><br>
+        Harga: <b>${plan.price}</b><br>
+        Deskripsi: ${plan.desc}
+      `;
+      if (animate && element) {
+        element.animate([
+          { transform: 'translateY(0px)' },
+          { transform: 'translateY(-4px)' },
+          { transform: 'translateY(-3px)' }
+        ], { duration: 180, easing: 'ease-out' });
+      }
+    }
+
+    function orderSekarang() {
+      const nama = document.getElementById('nama').value.trim();
+      const nomor = document.getElementById('nomor').value.trim();
+      const username = document.getElementById('username').value.trim();
+      const catatan = document.getElementById('catatan').value.trim();
+
+      if (!selectedPlan) {
+        alert('Silakan pilih paket terlebih dahulu.');
+        return;
+      }
+
+      if (!nama || !nomor || !username) {
+        alert('Nama, nomor WhatsApp, dan username panel wajib diisi.');
+        return;
+      }
+
+      const text = `${CONFIG.messageHeader}\n\n` +
+        `*Toko:* ${CONFIG.storeName}\n` +
+        `*Nama:* ${nama}\n` +
+        `*Nomor:* ${nomor}\n` +
+        `*Username Panel:* ${username}\n` +
+        `*Paket:* ${selectedPlan.name}\n` +
+        `*Harga:* ${selectedPlan.price}\n` +
+        `*Catatan:* ${catatan || '-'}\n\n` +
+        `Mohon diproses ya kak.`;
+
+      const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+
+    renderPlans();
+  </script>
+</body>
+</html>
